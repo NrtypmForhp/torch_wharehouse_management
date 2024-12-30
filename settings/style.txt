@@ -1,0 +1,100 @@
+QWidget{
+    background-color:rgb(33, 33, 33);
+}
+QFrame{
+    background-color:rgb(33, 33, 33);
+}
+QLabel{
+    color: rgb(22, 224, 15);
+    font: 10pt SourceCodeVF;
+}
+QLabel[accessibleName="session_title"]{
+    color: rgb(22, 224, 15);
+    font: 20pt SourceCodeVF;
+}
+QPushButton{
+    color:rgb(22, 224, 15);
+    background: none;
+    border: 2px solid rgb(22, 224, 15);
+    border-radius: 15px 0;
+    width: 80px;
+    height: 20px;
+    font: 10pt SourceCodeVF;
+}
+QPushButton:hover{
+    border: 2px solid rgb(187, 184, 7);
+    border-radius: 0 0;
+    color: rgb(187, 184, 7);
+}
+QComboBox{
+    background-color: #292424;
+    color: #1CB414;
+    padding: 1px 0px 1px 3px; /* Rende possibile il cambio del colore del testo nell'hover */
+    width: 150px;
+    height: 20px;
+    font: 10pt SourceCodeVF;
+}
+QComboBox:hover{
+    background-color: #0C3B0B;
+    color: #D59B0C;
+}
+QComboBox:selected{
+    background-color: #075206;
+    color: #D59B0C;
+}
+QComboBox QAbstractItemView{
+    border: 1px solid black;
+    background-color: #292424;
+    color: #1CB414;
+    selection-background-color: #0C3B0B;
+    selection-color: #D59B0C;
+    font: 10pt SourceCodeVF;
+}
+QScrollArea{
+    border: none;
+    background-color:rgb(33, 33, 33);
+}
+QLineEdit{
+    color:rgb(22, 224, 15);
+    background: none;
+    border: 2px solid rgb(22, 224, 15);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom-left-radius: 20px 0;
+    border-bottom-right-radius: 20px 0;
+    height: 20px;
+    font: 10pt SourceCodeVF;
+}
+QLineEdit:hover{
+    border: 2px solid rgb(187, 184, 7);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom-left-radius: 0 0;
+    border-bottom-right-radius: 0 0;
+}
+QLineEdit:focus{
+    border: 2px solid rgb(187, 184, 7);
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom-left-radius: 0 0;
+    border-bottom-right-radius: 0 0;
+}
+QCheckBox{
+    padding: 5px;
+    color: rgb(22, 224, 15);
+    font: 10pt SourceCodeVF;
+}
+QCheckBox::indicator{
+    border: 2px solid rgb(22, 224, 15);
+    width: 20px;
+    height: 20px;
+}
+QCheckBox::indicator:checked{
+    image: url(checkbox_checked_url);
+}
+QCheckBox::indicator:unchecked{
+    image: url(checkbox_unchecked_url);
+}
