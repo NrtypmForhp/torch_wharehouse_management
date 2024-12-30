@@ -8,3 +8,5 @@ password_options_placeholder: Password
 save_options: Salva
 auto_login: Login automatico
 options_field_warning_message: I campi devono essere tutti compilati!
+goods: Articoli
+new_good: Nuovo Articolo
