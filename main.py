@@ -3,7 +3,7 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QGridLayout, QVBoxLayout, QF
 from PyQt6.QtGui import QIcon, QPixmap
 from PyQt6.QtCore import Qt, QObject, pyqtSignal, QRunnable, QThreadPool, pyqtSlot
 import sys, os, pymongo
-from settings import SettingMainFunctions as SMF
+import settings
 
 # -*-* Signals *-*-
 
@@ -17,24 +17,13 @@ class LoginThread(QRunnable):
     def __init__(self, mongodb_string:str, username:str, password:str):
         super().__init__()
         
-        # Variabili iniziali
-        
-        if getattr(sys, 'frozen', False): # Se viene avviato da un file eseguibile
-            self.main_directory = os.path.dirname(sys.executable)
-        elif __file__: # Se viene avviato direttamente dallo script
-            self.main_directory = os.path.dirname(__file__)
-
-        self.settings_directory = os.path.join(self.main_directory, "settings")
-        self.messages_directory = os.path.join(self.main_directory, "messages")
-        self.img_directory = os.path.join(self.settings_directory, "img")
-        
         self.mongodb_string = mongodb_string
         self.username = username
         self.password = password
         self.signal = Signals()
         
         # Caricamento messaggi
-        self.messages = SMF.load_messages(self, "login")
+        self.messages = settings.load_messages("login")
     
     @pyqtSlot()
     def run(self):
@@ -81,10 +70,10 @@ class MainWindow(QWidget):
         self.sessions = [] # Sessioni aree
         
         # Caricamento messaggi
-        self.messages = SMF.load_messages(self, "main")
+        self.messages = settings.load_messages("main")
         
         # Caricamento impostazioni
-        self.settings = SMF.load_settings(self)
+        self.settings = settings.load_settings()
         
         # Impostazioni finestra
         
@@ -96,7 +85,7 @@ class MainWindow(QWidget):
         self.lay.setSpacing(0)
         
         # Stile finestra
-        self.setStyleSheet(SMF.load_stylesheet(self))
+        self.setStyleSheet(settings.load_stylesheet())
 
         # Frame principali finestra
         self.frame_logo = QFrame(self)
@@ -109,12 +98,13 @@ class MainWindow(QWidget):
         
         self.frame_actions = QFrame(self)
         self.lay.addWidget(self.frame_actions, 1, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.frame_actions_lay = QVBoxLayout(self.frame_actions)
         
         self.frame_session = QFrame(self)
         self.lay.addWidget(self.frame_session, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.frame_session_lay = QGridLayout(self.frame_session)
         
-        # Frame logo
+        # Frame Logo
         
         self.label_logo = QLabel(self)
         img_pixmap = QPixmap(os.path.join(self.img_directory, "Torch.png"))
@@ -135,7 +125,14 @@ class MainWindow(QWidget):
         self.button_options.clicked.connect(self.start_options_session)
         self.frame_options_lay.addWidget(self.button_options, 0, 2, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignLeft)
         
-        # -*-* Frame Sessione *-*-
+        # Frame Azioni
+        
+        self.button_frame_actions_goods = QPushButton(self, text=self.messages["goods"])
+        self.button_frame_actions_goods.clicked.connect(self.start_goods_session)
+        self.button_frame_actions_goods.hide()
+        self.frame_actions_lay.addWidget(self.button_frame_actions_goods, alignment=Qt.AlignmentFlag.AlignCenter)
+        
+        # -*-* Frame Sessioni *-*-
         # Opzioni
         self.scrollarea_frame_session_options = QScrollArea(self.frame_session)
         
@@ -179,6 +176,23 @@ class MainWindow(QWidget):
         self.label_frame_session_options_response = QLabel(self)
         self.frame_session_options_lay.addWidget(self.label_frame_session_options_response, alignment=Qt.AlignmentFlag.AlignCenter)
         
+        # Articoli
+        
+        self.scrollarea_frame_session_goods = QScrollArea(self.frame_session)
+        
+        self.frame_session_goods = QFrame(self.frame_session)
+        self.frame_session_lay.addWidget(self.frame_session_goods, 0, 0, Qt.AlignmentFlag.AlignTop)
+        self.frame_session_goods_lay = QGridLayout(self.frame_session_goods)
+        
+        self.scrollarea_frame_session_goods.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scrollarea_frame_session_goods.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scrollarea_frame_session_goods.setWidgetResizable(True)
+        self.scrollarea_frame_session_goods.setWidget(self.frame_session_goods)
+        self.scrollarea_frame_session_goods.hide()
+        
+        self.button_frame_session_goods_new_good = QPushButton(self, text=self.messages["new_good"])
+        self.frame_session_goods_lay.addWidget(self.button_frame_session_goods_new_good, 0, 0, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        
         # Avvio threadpool
         
         self.pool = QThreadPool.globalInstance()
@@ -187,6 +201,9 @@ class MainWindow(QWidget):
         
         if self.settings["username"] == "-" or self.settings["password"] == "-":
             self.button_options.click()
+        else:
+            self.checkbox_frame_session_options_autologin.setChecked(True)
+            self.button_frame_session_options_save_options.click()
     
     def resizeEvent(self, a0):
         W_width = self.width()
@@ -200,11 +217,16 @@ class MainWindow(QWidget):
             self.frame_options.setFixedSize(W_width - width_op, height_op)
             self.frame_actions.setFixedSize(width_op, W_height - height_op)
             self.frame_session.setFixedSize(W_width - width_op, W_height - height_op)
-            # Frame sessioni
+            # Frame Opzioni
+            self.combobox_actual_session.setFixedWidth(W_width - (width_op + 300))
+            # -*-* Frame sessioni *-*-
+            # Opzioni
             self.scrollarea_frame_session_options.setFixedSize(W_width - width_op, W_height - height_op)
             self.lineedit_frame_session_options_database_string.setFixedWidth(W_width - (width_op + 50))
             self.lineedit_frame_session_options_username.setFixedWidth(W_width - (width_op + 50))
             self.lineedit_frame_session_options_password.setFixedWidth(W_width - (width_op + 50))
+            # Articoli
+            self.scrollarea_frame_session_goods.setFixedSize(W_width - width_op, W_height - height_op)
         except AttributeError:
             pass
         return super().resizeEvent(a0)
@@ -214,7 +236,7 @@ class MainWindow(QWidget):
     def session_index_changed(self) -> None:
         if len(self.sessions) == 0: return
         session_index = self.combobox_actual_session.currentIndex()
-        if self.sessions[session_index]["type"] == "options": self.replace_session_frame("options")
+        self.replace_session_frame(self.sessions[session_index]["type"])
     
     # Chiusura sessione attuale
     
@@ -242,6 +264,8 @@ class MainWindow(QWidget):
             err_msg.setWindowTitle(self.messages["warning"])
             err_msg.setText(self.messages["options_field_warning_message"])
             return err_msg.exec()
+        self.buttons_enable_disable(False)
+        self.buttons_show_hide(False)
         login = LoginThread(self.lineedit_frame_session_options_database_string.text(), self.lineedit_frame_session_options_username.text(), self.lineedit_frame_session_options_password.text())
         login.signal.login_finished_signal.connect(self.options_threadbreak)
         login.signal.login_status_signal.connect(self.options_status)
@@ -251,17 +275,50 @@ class MainWindow(QWidget):
         self.label_frame_session_options_response.setText(response)
     
     def options_threadbreak(self, response:dict) -> None:
+        self.buttons_enable_disable(True)
         if response["error"] != "no":
             err_msg = QMessageBox(self)
             err_msg.setWindowTitle(self.messages["warning"])
             err_msg.setText(response["error"])
             return err_msg.exec()
+        self.buttons_show_hide(True)
+        if self.checkbox_frame_session_options_autologin.isChecked() == True:
+            settings.update_settings(self.lineedit_frame_session_options_database_string.text(), self.lineedit_frame_session_options_username.text(), self.lineedit_frame_session_options_password.text())
+        else:
+            settings.update_settings(self.lineedit_frame_session_options_database_string.text(), "-", "-")
+        self.button_close_actual_session.click()
+    
+    # Sessione Articoli
+    
+    def start_goods_session(self) -> None:
+        # Controllo se la sessione è già aperta
+        for session in self.sessions:
+            if session["type"] == "goods": return self.combobox_actual_session.setCurrentIndex(self.sessions.index(session))
+        self.sessions.append({"type": "goods"})
+        self.combobox_actual_session.addItem(self.messages["goods"])
+        self.combobox_actual_session.setCurrentText(self.messages["goods"])
     
     # Pulizia e Impostazione Frame Sessione
     def replace_session_frame(self, activate:str="none") -> None:
         # Pulizia
         self.scrollarea_frame_session_options.hide()
+        self.scrollarea_frame_session_goods.hide()
+        
         if activate == "options": self.scrollarea_frame_session_options.show()
+        if activate == "goods": self.scrollarea_frame_session_goods.show()
+    
+    # Disabilita o Riabilita pulsanti
+    def buttons_enable_disable(self, enable:bool) -> None:
+        self.combobox_actual_session.setEnabled(enable)
+        self.button_close_actual_session.setEnabled(enable)
+        self.button_options.setEnabled(enable)
+        self.button_frame_session_options_save_options.setEnabled(enable)
+    
+    def buttons_show_hide(self, show:bool) -> None:
+        if show == True:
+            self.button_frame_actions_goods.show()
+        else:
+            self.button_frame_actions_goods.hide()
 
 
 if __name__ == "__main__":
