@@ -17,7 +17,7 @@ QPushButton{
     background: none;
     border: 2px solid rgb(22, 224, 15);
     border-radius: 15px 0;
-    width: 80px;
+    width: 120px;
     height: 20px;
     font: 10pt SourceCodeVF;
 }
@@ -30,7 +30,6 @@ QComboBox{
     background-color: #292424;
     color: #1CB414;
     padding: 1px 0px 1px 3px; /* Rende possibile il cambio del colore del testo nell'hover */
-    width: 150px;
     height: 20px;
     font: 10pt SourceCodeVF;
 }
